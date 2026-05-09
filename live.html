@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulse — Live Feeds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f14; --surface: #13161e; --surface2: #1a1e2a; --surface3: #212536;
+      --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+      --text: #e8eaf0; --text-2: #8b90a0; --text-3: #555a6a;
+      --accent: #4f8ef7; --danger: #e25c5c;
+      --radius: 10px; --radius-sm: 6px; --radius-lg: 16px;
+      --font-display: 'DM Serif Display', Georgia, serif;
+      --font-sans: 'DM Sans', system-ui, sans-serif;
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 14px; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 52px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .wordmark {
+      font-family: var(--font-display); font-size: 22px; color: var(--text);
+      letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px;
+    }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: breathe 2.4s ease-in-out infinite; }
+    @keyframes breathe { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-2); text-decoration: none;
+      padding: 6px 12px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border2); background: transparent;
+      transition: background 0.15s, color 0.15s;
+    }
+    .back-btn:hover { background: var(--surface2); color: var(--text); }
+
+    .page-title { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 500; color: var(--danger);
+      padding: 3px 8px; border-radius: 20px;
+      border: 1px solid rgba(226,92,92,0.25);
+    }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--danger); animation: breathe 1.2s ease-in-out infinite; }
+
+    main { padding: 28px 32px; max-width: 1200px; margin: 0 auto; }
+
+    .section-header { margin-bottom: 18px; }
+    .section-title-lg { font-family: var(--font-display); font-size: 24px; color: var(--text); margin-bottom: 4px; }
+    .section-sub { font-size: 13px; color: var(--text-2); }
+
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 40px;
+    }
+
+    .channel-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .channel-card:hover { background: var(--surface2); border-color: var(--border2); }
+
+    .channel-top { display: flex; align-items: center; justify-content: space-between; }
+    .channel-icon {
+      width: 38px; height: 38px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .channel-status { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 500; }
+
+    .channel-name { font-size: 14px; font-weight: 500; color: var(--text); }
+    .channel-desc { font-size: 12px; color: var(--text-2); line-height: 1.4; }
+    .channel-tag {
+      align-self: flex-start;
+      font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em;
+      padding: 2px 6px; border-radius: 3px;
+    }
+    .tag-geo    { background: rgba(226,92,92,0.12);   color: #e07070; }
+    .tag-tech   { background: rgba(79,142,247,0.12);  color: #6ba3f8; }
+    .tag-health { background: rgba(63,184,132,0.12);  color: #5dc89a; }
+    .tag-space  { background: rgba(155,127,244,0.12); color: #b09cf6; }
+
+    .embed-area {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+    .embed-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .embed-label { font-size: 12px; font-weight: 500; color: var(--text-2); }
+    .embed-placeholder {
+      height: 420px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; color: var(--text-3);
+    }
+    .embed-placeholder i { font-size: 40px; opacity: 0.4; }
+    .embed-placeholder p { font-size: 13px; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark"><div class="pulse-dot"></div>Pulse</div>
+  <span class="page-title">Live Feeds</span>
+  <a href="index.html" class="back-btn"><i class="ph ph-arrow-left"></i> Dashboard</a>
+</header>
+
+<main>
+
+  <div class="section-header">
+    <div class="section-title-lg">Live video streams</div>
+    <div class="section-sub">Curated channels across geopolitics, technology, health and science. Click any card to watch.</div>
+  </div>
+
+  <!-- Embed area -->
+  <div class="embed-area">
+    <div class="embed-header">
+      <span class="embed-label" id="embed-label">Select a channel to watch inline</span>
+      <div class="live-badge" id="embed-status" style="display:none"><div class="live-dot"></div>Live</div>
+    </div>
+    <div class="embed-placeholder" id="embed-placeholder">
+      <i class="ph ph-play-circle"></i>
+      <p>Choose a channel below to embed the stream here</p>
+    </div>
+    <div id="embed-frame" style="display:none;"></div>
+  </div>
+
+  <!-- News -->
+  <div class="section-header">
+    <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;">News &amp; Geopolitics</div>
+  </div>
+  <div class="channel-grid">
+    <a class="channel-card" onclick="embedChannel('al-jazeera')">
+      <div class="channel-top">
+        <div class="channel-icon" style="background:rgba(226,92,92,0.1)">📡</div>
+        <div class="channel-status" style="color:var(--danger)"><div class="live-dot"></div>Live</div>
+      </div>
+      <div class="channel-name">Al Jazeera English</div>
+      <div class="channel-desc">24/7 breaking news with strong Middle East and Global South coverage.</div>
+      <span class="channel-tag tag-geo">Geopolitics</span>
+    </a>
+    <a class="channel-card" onclick="embedChannel('bbc-news')">
+      <div class="channel-top">
+        <div class="channel-icon" style="background:rgba(226,92,92,0.1)">📺</div>
+        <div class="channel-status" style="color:var(--danger)"><div class="live-dot"></div>Live</div>
+      </div>
+      <div class="channel-name">BBC News</div>
+      <div class="channel-desc">UK and global breaking news, analysis, and world affairs.</div>
+      <span class="channel-tag tag-geo">Geopolitics</span>
+    </a>
+    <a class="channel-card" onclick="embedChannel('dw-news')">
+      <div class="channel-top">
+        <div class="channel-icon" style="background:rgba(79,142,247,0.1)">🌍</div>
+        <div class="channel-status" style="color:var(--danger)"><div class="live-dot"></div>Live</div>
+      </div>
+      <div class="channel-name">DW News</div>
+      <div class="channel-desc">European and global affairs from Deutsche Welle's international desk.</div>
+      <span class="channel-tag tag-geo">Geopolitics</span>
+    </a>
+    <a class="channel-card" href="https://www.youtube.com/@reuters/streams" target="_blank" rel="noopener">
+      <div class="channel-top">
+        <div class="channel-icon" style="background:rgba(226,92,92,0.1)">🗞️</div>
+        <div class="channel-status" style="color:var(--text-3)"><i class="ph ph-arrow-square-out" style="font-size:12px"></i>External</div>
+      </div>
+      <div class="channel-name">Reuters TV</div>
+      <div class="channel-desc">Wire news video and breaking coverage from Reuters correspondents worldwide.</div>
+      <span class="channel-tag tag-geo">Geopolitics</span>
+    </a>
+  </div>
+
+  <!-- Space & Science -->
+  <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;">Science &amp; Space</div>
+  <div class="channel-grid">
+    <a class="channel-card" onclick="embedChannel('nasa')">
+      <div class="channel-top">
+        <div class="channel-icon" style="background:rgba(155,127,244,0.1)">🚀</div>
+        <div class="channel-status" style="color:var(--danger)"><div class="live-dot"></div>Live</div>
+      </div>
+      <div class="channel-name">NASA Television</div>
+      <div class="channel-desc">Mission coverage, launches, ISS feeds, and science briefings direct from NASA.</div>
+      <span class="channel-tag tag-space">Science & Space</span>
+    </a>
+    <a class="channel-card" href="https://www.youtube.com/@SpaceX/streams" target="_blank" rel="noopener">
+      <div class="channel-top">
+        <div class="channel-icon" style="background:rgba(155,127,244,0.1)">🛸</div>
+        <div class="channel-status" style="color:var(--text-3)"><i class="ph ph-arrow-square-out" style="font-size:12px"></i>External</div>
+      </div>
+      <div class="channel-name">SpaceX</div>
+      <div class="channel-desc">Starship, Falcon 9 and Falcon Heavy launch streams and updates.</div>
+      <span class="channel-tag tag-space">Science & Space</span>
+    </a>
+  </div>
+
+  <!-- Health -->
+  <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;">Public Health</div>
+  <div class="channel-grid">
+    <a class="channel-card" href="https://www.youtube.com/@WHO/streams" target="_blank" rel="noopener">
+      <div class="channel-top">
+        <div class="channel-icon" style="background:rgba(63,184,132,0.1)">🧬</div>
+        <div class="channel-status" style="color:var(--text-3)"><i class="ph ph-arrow-square-out" style="font-size:12px"></i>External</div>
+      </div>
+      <div class="channel-name">World Health Organization</div>
+      <div class="channel-desc">Emergency briefings, outbreak updates, and press conferences from WHO.</div>
+      <span class="channel-tag tag-health">Public Health</span>
+    </a>
+  </div>
+
+</main>
+
+<script>
+const CHANNEL_IDS = {
+  'al-jazeera': 'UCNye-wNBqNL5ZzHSJdpkZZA',
+  'bbc-news':   'UC16niRr50-MSBwiO3YDb3RA',
+  'dw-news':    'UCknLrEdhRCp1aegoMqRaCZg',
+  'nasa':       'UCLA_DiR1FfKNvjuUpBHmylQ',
+};
+
+function embedChannel(key) {
+  const channelId = CHANNEL_IDS[key];
+  if (!channelId) return;
+  const frame = document.getElementById('embed-frame');
+  const placeholder = document.getElementById('embed-placeholder');
+  const label = document.getElementById('embed-label');
+  const status = document.getElementById('embed-status');
+
+  placeholder.style.display = 'none';
+  frame.style.display = 'block';
+  frame.innerHTML = `<iframe
+    width="100%" height="480"
+    src="https://www.youtube.com/embed/live_stream?channel=${channelId}&autoplay=1"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen
+    style="display:block;"
+  ></iframe>`;
+
+  const names = {
+    'al-jazeera': 'Al Jazeera English',
+    'bbc-news': 'BBC News',
+    'dw-news': 'DW News',
+    'nasa': 'NASA Television',
+  };
+  label.textContent = `Now watching: ${names[key] || key}`;
+  status.style.display = 'inline-flex';
+
+  // scroll to embed
+  document.querySelector('.embed-area').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

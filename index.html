@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulse — Global Intelligence</title>
+  <meta name="description" content="Real-time global intelligence dashboard tracking geopolitics, technology, health and science." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Topbar ─────────────────────────────────────── -->
+  <header id="topbar">
+    <div class="wordmark">
+      <div class="pulse-dot"></div>
+      Pulse
+    </div>
+
+    <div class="topbar-actions">
+      <span id="last-updated" style="font-size:11px;color:var(--text-3);margin-right:6px"></span>
+      <button class="icon-btn refresh-btn" id="refresh-btn" onclick="triggerRefresh()" title="Refresh">
+        <i class="ph ph-arrows-clockwise"></i> Refresh
+      </button>
+      <div class="topbar-divider"></div>
+      <a href="live.html" class="icon-btn live-btn" title="Live Feeds">
+        <div class="live-indicator"></div>
+        Live Feeds
+      </a>
+      <div class="topbar-divider"></div>
+      <button class="icon-btn" title="Settings" onclick="alert('Settings coming soon.')">
+        <i class="ph ph-gear"></i>
+      </button>
+      <button class="icon-btn" title="Profile">
+        <i class="ph ph-user-circle"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Sidebar ────────────────────────────────────── -->
+  <nav id="sidebar">
+    <div class="sidebar-label">Topics</div>
+
+    <div class="nav-item active" onclick="setFilter('all', this)">
+      <i class="ph ph-squares-four nav-icon"></i>
+      All stories
+      <span class="nav-count">9</span>
+    </div>
+    <div class="nav-item" onclick="setFilter('geo', this)">
+      <span class="dot dot-geo"></span>
+      Geopolitics
+      <span class="nav-count">3</span>
+    </div>
+    <div class="nav-item" onclick="setFilter('tech', this)">
+      <span class="dot dot-tech"></span>
+      Tech & AI
+      <span class="nav-count">2</span>
+    </div>
+    <div class="nav-item" onclick="setFilter('health', this)">
+      <span class="dot dot-health"></span>
+      Public Health
+      <span class="nav-count">2</span>
+    </div>
+    <div class="nav-item" onclick="setFilter('space', this)">
+      <span class="dot dot-space"></span>
+      Science & Space
+      <span class="nav-count">2</span>
+    </div>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Markets</div>
+
+    <div id="market-list"></div>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-label">Auto-refresh</div>
+    <div style="padding: 4px 8px 8px; display:flex; align-items:center; justify-content:space-between;">
+      <span style="font-size:12px;color:var(--text-2)">Every 30 min</span>
+      <div id="ar-toggle" onclick="toggleAR()"
+        style="width:30px;height:17px;border-radius:9px;background:var(--accent);cursor:pointer;position:relative;transition:background .2s;"
+        title="Toggle auto-refresh">
+        <div id="ar-thumb" style="position:absolute;top:2px;left:13px;width:13px;height:13px;border-radius:50%;background:#fff;transition:left .15s;"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Map ───────────────────────────────────────── -->
+  <main id="map-panel">
+    <div id="map-container"></div>
+  </main>
+
+  <!-- ── Right panel ───────────────────────────────── -->
+  <aside id="right-panel">
+    <div class="rp-header">
+      <span class="rp-title">Regions</span>
+    </div>
+    <div id="region-list"></div>
+
+    <div class="rp-header" style="margin-top:8px;">
+      <span class="rp-title">Upcoming</span>
+    </div>
+    <div id="alert-list"></div>
+  </aside>
+
+  <!-- ── Bottom row ─────────────────────────────────── -->
+  <div id="bottom-main">
+
+    <!-- Social section -->
+    <section id="social-section">
+      <div class="section-header">
+        <span class="section-title">
+          <i class="ph ph-rss-simple" style="font-size:13px;margin-right:4px;vertical-align:-1px;"></i>
+          Social & Regional
+        </span>
+        <span style="font-size:10px;color:var(--text-3)">Live posts</span>
+      </div>
+      <div class="section-scroll" id="social-list"></div>
+    </section>
+
+    <!-- Top stories -->
+    <section id="stories-section">
+      <div class="stories-tabs">
+        <span style="font-size:11px;color:var(--text-3);font-weight:500;margin-right:6px;">
+          <i class="ph ph-newspaper" style="vertical-align:-1px;"></i>
+          Top Stories
+        </span>
+        <button class="stories-tab active" onclick="setStoryTab('all', this)">All</button>
+        <button class="stories-tab" onclick="setStoryTab('geo', this)">Geo</button>
+        <button class="stories-tab" onclick="setStoryTab('tech', this)">Tech</button>
+        <button class="stories-tab" onclick="setStoryTab('health', this)">Health</button>
+        <button class="stories-tab" onclick="setStoryTab('space', this)">Space</button>
+      </div>
+      <div class="section-scroll" id="stories-list"></div>
+    </section>
+
+  </div>
+
+</div><!-- /app -->
+
+<!-- ── Reader overlay ─────────────────────────────────── -->
+<div id="reader-overlay">
+  <div class="reader-backdrop" id="reader-backdrop"></div>
+  <div class="reader-panel">
+    <div class="reader-topbar">
+      <span class="tag" id="reader-tag"></span>
+      <a id="reader-source-link" class="reader-external" href="#" target="_blank" rel="noopener">
+        <i class="ph ph-arrow-square-out"></i>
+        Source
+      </a>
+      <button class="reader-close" onclick="closeReader()" title="Close (Esc)">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+    <div class="reader-body">
+      <h1 class="reader-title" id="reader-title"></h1>
+      <div class="reader-byline" id="reader-byline"></div>
+      <div class="reader-summary" id="reader-body-text"></div>
+      <div class="reader-note">
+        <i class="ph ph-info"></i>
+        This is an AI-generated summary. Click the source link above to read the full article.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+function toggleAR() {
+  autoOn = !autoOn;
+  const toggle = document.getElementById('ar-toggle');
+  const thumb = document.getElementById('ar-thumb');
+  if (autoOn) {
+    toggle.style.background = 'var(--accent)';
+    thumb.style.left = '13px';
+  } else {
+    toggle.style.background = 'var(--surface3)';
+    thumb.style.left = '2px';
+  }
+}
+</script>
+
+</body>
+</html>
