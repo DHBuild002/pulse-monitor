@@ -236,6 +236,7 @@ body {
   background: #c4ddc8;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  isolation: isolate;
 }
 
 #map-container {
@@ -514,7 +515,7 @@ body {
 #reader-overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 1000;
   display: flex;
   align-items: stretch;
   pointer-events: none;
