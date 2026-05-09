@@ -19,7 +19,7 @@ const SOURCES = [
   { id: 'ars',    name: 'Ars Technica',             rss: 'https://feeds.arstechnica.com/arstechnica/index',                topic: 'tech',   region: 'Americas',      lat: 40.7,  lng: -74.0  },
 ];
 
-const ITEMS_PER_SOURCE = 2;
+const ITEMS_PER_SOURCE = 5;
 
 function extractTag(xml, tag) {
   const cdata = xml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>`, 'i'));
