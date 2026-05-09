@@ -93,7 +93,7 @@ exports.handler = async function () {
     statusCode: 200,
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': 'public, max-age=86400',
     },
     body: JSON.stringify(stories),
   };
