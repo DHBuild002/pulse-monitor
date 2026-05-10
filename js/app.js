@@ -138,14 +138,46 @@ const FALLBACK_STORIES = [
 let STORIES = [...FALLBACK_STORIES];
 
 /* ── Static data ─────────────────────────────────────── */
-const SOCIAL_POSTS = [
-  { handle: '@KyivIndependent', initials: 'KI', color: '#3a5fa0', topic: 'geo',    text: 'BREAKING: Ukrainian forces cross the Dnipro in Zaporizhzhia — unconfirmed yet but multiple sources reporting movement. Watching closely. 🧵', time: '12m' },
-  { handle: '@WHO',             initials: 'W',  color: '#2a7d4f', topic: 'health', text: 'We are convening the Emergency Committee on mpox this week. New clade data from DRC shows increased transmissibility. All updates at who.int/emergencies', time: '34m' },
-  { handle: '@NASAArtemis',     initials: 'NA', color: '#3a4a8a', topic: 'space',  text: 'The crew of #Artemis III-F has safely completed the lunar flyby. Full post-flight debrief tomorrow. Historic mission. 🌕', time: '2h' },
-  { handle: '@techreview_eu',   initials: 'TR', color: '#555',    topic: 'tech',   text: 'The EU AI Act compliance clock is running. Most companies I talk to are nowhere near ready. The first big enforcement action will send shockwaves.', time: '1h' },
-  { handle: '@reuters_world',   initials: 'RW', color: '#c0392b', topic: 'geo',    text: 'Philippines FM: "What happened today at Second Thomas Shoal is not just a bilateral issue. It is a test of international law." Full statement incoming.', time: '55m' },
-  { handle: '@SCMPNews',        initials: 'SC', color: '#8b6914', topic: 'tech',   text: 'China\'s sovereign AI cloud is now live. Government ministries have 90 days to migrate. Foreign AI vendors are watching their China revenue projections very carefully.', time: '5h' },
+const FALLBACK_SOCIAL = [
+  { platform: 'static', handle: '@KyivIndependent', initials: 'KI', color: '#3a5fa0', topic: 'geo',    text: 'BREAKING: Ukrainian forces cross the Dnipro in Zaporizhzhia — unconfirmed yet but multiple sources reporting movement. Watching closely. 🧵', time: '12m', url: '#' },
+  { platform: 'static', handle: '@WHO',             initials: 'W',  color: '#2a7d4f', topic: 'health', text: 'We are convening the Emergency Committee on mpox this week. New clade data from DRC shows increased transmissibility. All updates at who.int/emergencies', time: '34m', url: '#' },
+  { platform: 'static', handle: '@NASAArtemis',     initials: 'NA', color: '#3a4a8a', topic: 'space',  text: 'The crew of #Artemis III-F has safely completed the lunar flyby. Full post-flight debrief tomorrow. Historic mission. 🌕', time: '2h', url: '#' },
+  { platform: 'static', handle: '@techreview_eu',   initials: 'TR', color: '#555',    topic: 'tech',   text: 'The EU AI Act compliance clock is running. Most companies I talk to are nowhere near ready. The first big enforcement action will send shockwaves.', time: '1h', url: '#' },
+  { platform: 'static', handle: '@reuters_world',   initials: 'RW', color: '#c0392b', topic: 'geo',    text: 'Philippines FM: "What happened today at Second Thomas Shoal is not just a bilateral issue. It is a test of international law." Full statement incoming.', time: '55m', url: '#' },
+  { platform: 'static', handle: '@SCMPNews',        initials: 'SC', color: '#8b6914', topic: 'tech',   text: 'China\'s sovereign AI cloud is now live. Government ministries have 90 days to migrate. Foreign AI vendors are watching their China revenue projections very carefully.', time: '5h', url: '#' },
 ];
+let SOCIAL_POSTS = [...FALLBACK_SOCIAL];
+
+/* ── Social cache & state ────────────────────────────── */
+const SOCIAL_CACHE_KEY    = 'pulse_social_v1';
+const SOCIAL_CACHE_TS_KEY = 'pulse_social_ts_v1';
+const SOCIAL_CACHE_TTL    = 30 * 60 * 1000;
+
+let socialPaused      = false;
+let socialRefreshTimer = null;
+let currentSocialQuery = '';
+let socialSearchTimer  = null;
+
+function getSocialCached(query) {
+  try {
+    const key   = query ? `${SOCIAL_CACHE_KEY}_${query}` : SOCIAL_CACHE_KEY;
+    const tsKey = query ? `${SOCIAL_CACHE_TS_KEY}_${query}` : SOCIAL_CACHE_TS_KEY;
+    const ts  = localStorage.getItem(tsKey);
+    const raw = localStorage.getItem(key);
+    if (!ts || !raw) return null;
+    if (Date.now() - parseInt(ts, 10) > SOCIAL_CACHE_TTL) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+function setSocialCache(posts, query) {
+  try {
+    const key   = query ? `${SOCIAL_CACHE_KEY}_${query}` : SOCIAL_CACHE_KEY;
+    const tsKey = query ? `${SOCIAL_CACHE_TS_KEY}_${query}` : SOCIAL_CACHE_TS_KEY;
+    localStorage.setItem(key, JSON.stringify(posts));
+    localStorage.setItem(tsKey, String(Date.now()));
+  } catch {}
+}
 
 const MARKETS = [
   { name: 'Brent',   unit: '/bbl',   price: '$84.20', chg: '+1.4%', dir: 'up' },
@@ -261,16 +293,82 @@ function renderRightPanel() {
 }
 
 /* ── Render bottom: social ───────────────────────────── */
-function renderSocial() {
-  document.getElementById('social-list').innerHTML = SOCIAL_POSTS.map(p => `
-    <div class="social-post">
+function platformLabel(p) {
+  return { reddit: 'Reddit', hn: 'HN', bluesky: 'Bluesky', static: 'Feed' }[p] || 'Feed';
+}
+
+function renderSocial(posts) {
+  const list = posts || SOCIAL_POSTS;
+  document.getElementById('social-list').innerHTML = list.map(p => `
+    <a class="social-post" href="${p.url || '#'}" target="_blank" rel="noopener">
       <div class="avatar" style="background:${p.color}20;color:${p.color}">${p.initials}</div>
       <div class="post-body">
-        <div class="post-handle">${p.handle} &middot; ${p.time}</div>
-        <div class="post-tag tag-${p.topic}">${TAG_LABELS[p.topic]}</div>
+        <div class="post-handle-row">
+          <span class="platform-badge platform-${p.platform || 'static'}">${platformLabel(p.platform)}</span>
+          <span class="post-handle">${p.handle} &middot; ${p.time}</span>
+        </div>
+        <div class="post-tag tag-${p.topic}">${TAG_LABELS[p.topic] || p.topic}</div>
         <div class="post-text">${p.text}</div>
       </div>
-    </div>`).join('');
+    </a>`).join('');
+}
+
+/* ── Social feed ─────────────────────────────────────── */
+async function loadSocial(force = false, query = currentSocialQuery) {
+  if (socialPaused && !force) return;
+  const cached = getSocialCached(query);
+  if (cached && !force) {
+    SOCIAL_POSTS = cached;
+    renderSocial(SOCIAL_POSTS);
+    return;
+  }
+  const url = query
+    ? `/.netlify/functions/social?q=${encodeURIComponent(query)}`
+    : '/.netlify/functions/social';
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const posts = await res.json();
+    if (posts.length) {
+      SOCIAL_POSTS = posts;
+      setSocialCache(posts, query);
+    }
+  } catch (err) {
+    console.warn('Social fetch failed:', err);
+  }
+  renderSocial(SOCIAL_POSTS);
+}
+
+function toggleSocialPause() {
+  socialPaused = !socialPaused;
+  const icon   = document.getElementById('social-pause-icon');
+  const status = document.getElementById('social-status');
+  const btn    = document.getElementById('social-pause-btn');
+  if (socialPaused) {
+    icon.className  = 'ph ph-play';
+    status.textContent = 'Paused';
+    btn.title = 'Resume feed';
+  } else {
+    icon.className  = 'ph ph-pause';
+    status.textContent = '';
+    btn.title = 'Pause feed';
+    loadSocial(true);
+  }
+}
+
+function onSocialSearch(val) {
+  clearTimeout(socialSearchTimer);
+  socialSearchTimer = setTimeout(() => {
+    currentSocialQuery = val.trim();
+    loadSocial(true, currentSocialQuery);
+  }, 600);
+}
+
+function startSocialRefresh() {
+  if (socialRefreshTimer) clearInterval(socialRefreshTimer);
+  socialRefreshTimer = setInterval(() => {
+    if (!socialPaused && !currentSocialQuery) loadSocial(false);
+  }, SOCIAL_CACHE_TTL);
 }
 
 /* ── Render bottom: stories ──────────────────────────── */
@@ -398,6 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderStories();
   updateTimestamp();
 
-  // Fetch fresh data only if cache is stale or empty
   if (!isCacheFresh()) loadStories(false);
+  loadSocial(false);
+  startSocialRefresh();
 });

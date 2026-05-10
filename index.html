@@ -124,9 +124,15 @@
       <div class="section-header">
         <span class="section-title">
           <i class="ph ph-rss-simple" style="font-size:13px;margin-right:4px;vertical-align:-1px;"></i>
-          Social & Regional
+          Social
         </span>
-        <span style="font-size:10px;color:var(--text-3)">Live posts</span>
+        <div class="social-controls">
+          <span id="social-status" class="social-status"></span>
+          <input type="text" id="social-search" class="social-search-input" placeholder="Search posts…" oninput="onSocialSearch(this.value)" />
+          <button id="social-pause-btn" class="icon-btn" onclick="toggleSocialPause()" title="Pause feed">
+            <i class="ph ph-pause" id="social-pause-icon"></i>
+          </button>
+        </div>
       </div>
       <div class="section-scroll" id="social-list"></div>
     </section>

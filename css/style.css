@@ -632,6 +632,63 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
+/* ── Social controls ─────────────────────────────────── */
+.social-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.social-status {
+  font-size: 10px;
+  color: var(--warning);
+  font-weight: 500;
+  min-width: 36px;
+  text-align: right;
+}
+.social-search-input {
+  height: 26px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  padding: 0 8px;
+  outline: none;
+  width: 120px;
+  transition: border-color 0.15s, width 0.2s;
+}
+.social-search-input:focus {
+  border-color: var(--accent);
+  width: 150px;
+}
+.social-search-input::placeholder { color: var(--text-3); }
+
+/* Platform badges */
+.platform-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.platform-reddit  { background: rgba(255,69,0,0.10);   color: #cc3700; }
+.platform-hn      { background: rgba(255,102,0,0.10);  color: #cc5200; }
+.platform-bluesky { background: rgba(0,133,255,0.10);  color: #0066cc; }
+.platform-static  { background: var(--surface3);       color: var(--text-3); }
+
+.post-handle-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 2px;
+}
+.social-post { text-decoration: none; color: inherit; }
+
 /* ── Utilities ───────────────────────────────────────── */
 .flex { display: flex; }
 .items-center { align-items: center; }
