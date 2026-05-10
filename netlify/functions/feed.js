@@ -1,15 +1,15 @@
 const SOURCES = [
   // Original sources
   { id: 'aje',    name: 'Al Jazeera',              rss: 'https://www.aljazeera.com/xml/rss/all.xml',                      topic: 'geo',    region: 'Middle East',   lat: 25.0,  lng: 45.0   },
-  { id: 'apn',    name: 'AP News',                  rss: 'https://feeds.apnews.com/rss/apf-topnews',                       topic: 'geo',    region: 'Global',        lat: 40.7,  lng: -74.0  },
-  { id: 'scmp',   name: 'South China Morning Post', rss: 'https://www.scmp.com/rss/91/feed',                               topic: 'geo',    region: 'Asia-Pacific',  lat: 22.3,  lng: 114.2  },
+  { id: 'grd',    name: 'The Guardian',              rss: 'https://www.theguardian.com/world/rss',                          topic: 'geo',    region: 'Global',        lat: 51.5,  lng: -0.1   },
+  { id: 'scmp',   name: 'South China Morning Post', rss: 'http://www.scmp.com/rss/91/feed/',                               topic: 'geo',    region: 'Asia-Pacific',  lat: 22.3,  lng: 114.2  },
   { id: 'tc',     name: 'TechCrunch',               rss: 'https://techcrunch.com/feed/',                                   topic: 'tech',   region: 'Americas',      lat: 37.4,  lng: -122.1 },
-  { id: 'who',    name: 'WHO',                      rss: 'https://www.who.int/rss-feeds/news-releases.xml',                topic: 'health', region: 'Global',        lat: 46.2,  lng: 6.1    },
+  { id: 'cdc',    name: 'CDC',                       rss: 'https://tools.cdc.gov/api/v2/resources/media/132608.rss',        topic: 'health', region: 'Global',        lat: 33.8,  lng: -84.4  },
   { id: 'ndtv',   name: 'NDTV',                     rss: 'https://feeds.feedburner.com/ndtvnews-top-stories',              topic: 'geo',    region: 'Asia-Pacific',  lat: 28.6,  lng: 77.2   },
   { id: 'nasa',   name: 'NASA',                     rss: 'https://www.nasa.gov/news-release/feed/',                        topic: 'space',  region: 'Americas',      lat: 28.5,  lng: -80.6  },
   { id: 'nature', name: 'Nature',                   rss: 'https://www.nature.com/nature.rss',                              topic: 'space',  region: 'Global',        lat: 51.5,  lng: -0.1   },
   // Expanded coverage
-  { id: 'bbc',    name: 'BBC World',                rss: 'http://feeds.bbci.co.uk/news/world/rss.xml',                     topic: 'geo',    region: 'Europe',        lat: 51.5,  lng: -0.1   },
+  { id: 'bbc',    name: 'BBC World',                rss: 'https://feeds.bbci.co.uk/news/world/rss.xml',                    topic: 'geo',    region: 'Europe',        lat: 51.5,  lng: -0.1   },
   { id: 'dw',     name: 'Deutsche Welle',           rss: 'https://rss.dw.com/rdf/rss-en-world',                            topic: 'geo',    region: 'Europe',        lat: 50.9,  lng: 6.9    },
   { id: 'aa',     name: 'AllAfrica',                rss: 'https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf', topic: 'geo',    region: 'Africa',        lat: 0.0,   lng: 20.0   },
   { id: 'mp',     name: 'Merco Press',              rss: 'https://en.mercopress.com/rss',                                  topic: 'geo',    region: 'Latin America', lat: -23.5, lng: -46.6  },
