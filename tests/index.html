@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulse — Test Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #daeade;
+      --surface: #ffffff;
+      --surface2: #f1f8f3;
+      --accent: #2b9e60;
+      --text: #192820;
+      --text-2: #4a5e52;
+      --text-3: #8aab96;
+      --radius: 10px;
+      --shadow: 0 2px 8px rgba(30,60,40,.10);
+      --pass: #2b9e60;
+      --fail: #e25c5c;
+      --skip: #e8a83a;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .wordmark {
+      font-size: 18px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .pulse-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
+    }
+
+    .suite-title {
+      font-size: 13px;
+      color: var(--text-3);
+      margin-left: 4px;
+    }
+
+    .run-btn {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 8px 20px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .run-btn:hover { opacity: .85; }
+    .run-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .summary-bar {
+      display: flex;
+      gap: 16px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+    }
+
+    .summary-bar span { color: var(--text-2); }
+    .summary-bar strong { font-weight: 600; }
+    .cnt-pass { color: var(--pass); }
+    .cnt-fail { color: var(--fail); }
+    .cnt-skip { color: var(--skip); }
+
+    .section {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      background: var(--surface2);
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      border-bottom: 1px solid #e2ede6;
+    }
+
+    .test-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #f0f5f2;
+      font-size: 13px;
+      transition: background .1s;
+    }
+    .test-row:last-child { border-bottom: none; }
+    .test-row:hover { background: var(--surface2); }
+
+    .badge {
+      flex-shrink: 0;
+      width: 54px;
+      text-align: center;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 0;
+      letter-spacing: .06em;
+    }
+
+    .badge-pass  { background: #d4f0e3; color: var(--pass); }
+    .badge-fail  { background: #fde8e8; color: var(--fail); }
+    .badge-skip  { background: #fef5e4; color: var(--skip); }
+    .badge-wait  { background: #eef2ef; color: var(--text-3); }
+
+    .test-name { flex: 1; color: var(--text); line-height: 1.4; }
+    .test-detail { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .test-error  { font-size: 11px; color: var(--fail); margin-top: 2px; font-family: monospace; }
+
+    #app-frame { display: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">
+    <div class="pulse-dot"></div>
+    Pulse
+  </div>
+  <span class="suite-title">/ Test Suite</span>
+  <button class="run-btn" id="run-btn" onclick="runAll()">Run all tests</button>
+</header>
+
+<div class="summary-bar" id="summary-bar">
+  <span>Ready &mdash; press <strong>Run all tests</strong> to begin</span>
+</div>
+
+<!-- Section 1: UI -->
+<div class="section">
+  <div class="section-header">1 &mdash; UI &amp; Buttons</div>
+  <div id="ui-tests"></div>
+</div>
+
+<!-- Section 2: API -->
+<div class="section">
+  <div class="section-header">2 &mdash; API Requests</div>
+  <div id="api-tests"></div>
+</div>
+
+<!-- Section 3: Security -->
+<div class="section">
+  <div class="section-header">3 &mdash; Security &amp; XSS</div>
+  <div id="sec-tests"></div>
+</div>
+
+<!-- Hidden iframe hosts the app for DOM-based UI tests -->
+<iframe id="app-frame" src="/" title="App under test"></iframe>
+
+<script>
+/* ── Utilities ─────────────────────────────────────────── */
+let pass = 0, fail = 0, skip = 0;
+
+function el(id) { return document.getElementById(id); }
+
+function row(containerId, name, status, detail, error) {
+  const c = el(containerId);
+  const div = document.createElement('div');
+  div.className = 'test-row';
+  div.id = `tr-${containerId}-${c.children.length}`;
+  div.innerHTML = `
+    <span class="badge badge-wait">WAIT</span>
+    <div>
+      <div class="test-name">${name}</div>
+      ${detail ? `<div class="test-detail">${detail}</div>` : ''}
+    </div>`;
+  c.appendChild(div);
+  return div;
+}
+
+function setResult(rowEl, result, detail) {
+  const badge = rowEl.querySelector('.badge');
+  const nameEl = rowEl.querySelector('.test-name');
+  badge.className = `badge badge-${result}`;
+  badge.textContent = result.toUpperCase();
+
+  const existing = rowEl.querySelector('.test-detail, .test-error');
+  if (existing) existing.remove();
+
+  if (detail) {
+    const d = document.createElement('div');
+    d.className = result === 'fail' ? 'test-error' : 'test-detail';
+    d.textContent = detail;
+    nameEl.after(d);
+  }
+
+  if (result === 'pass') pass++;
+  else if (result === 'fail') fail++;
+  else if (result === 'skip') skip++;
+
+  updateSummary();
+}
+
+function updateSummary() {
+  const total = pass + fail + skip;
+  el('summary-bar').innerHTML = `
+    <span class="cnt-pass"><strong>${pass}</strong> passed</span>
+    <span class="cnt-fail"><strong>${fail}</strong> failed</span>
+    <span class="cnt-skip"><strong>${skip}</strong> skipped</span>
+    <span style="color:var(--text-3)">of <strong>${total}</strong> total</span>`;
+}
+
+/* ── Test definitions ──────────────────────────────────── */
+
+// Build the row stubs first so they appear in order before tests run
+const UI_TESTS = [
+  'Refresh button exists in DOM',
+  'Refresh button triggers spinner class on click',
+  'Pause button exists in DOM',
+  'Pause button toggles icon between pause / play',
+  'Reader overlay is hidden on page load',
+  'Clicking a story card opens the reader overlay',
+  'Close button (×) dismisses the reader overlay',
+];
+
+const API_TESTS = [
+  'Feed endpoint returns HTTP 200',
+  'Feed response body is a valid JSON array',
+  'Each story has id, title, topic, lat, lng, source',
+  'Social endpoint returns HTTP 200',
+  'Social response body is a valid JSON array',
+  'Social search endpoint (q=technology) returns HTTP 200',
+];
+
+const SEC_TESTS = [
+  'Feed Content-Type header is application/json',
+  'Social Content-Type header is application/json',
+  'XSS payload in story title is escaped, not executed',
+  'XSS payload in social post text is escaped, not executed',
+  'Feed error response does not leak a stack trace',
+];
+
+const uiRows  = UI_TESTS.map(name  => row('ui-tests',  name));
+const apiRows = API_TESTS.map(name => row('api-tests', name));
+const secRows = SEC_TESTS.map(name => row('sec-tests', name));
+
+/* ── Section 1: UI tests (via iframe) ─────────────────── */
+async function runUITests(appDoc) {
+  const r = uiRows;
+
+  // 1. Refresh button exists
+  const refreshBtn = appDoc.getElementById('refresh-btn');
+  setResult(r[0], refreshBtn ? 'pass' : 'fail',
+    refreshBtn ? '#refresh-btn found' : '#refresh-btn not found in DOM');
+
+  // 2. Refresh triggers spinner
+  if (refreshBtn) {
+    refreshBtn.click();
+    await delay(200);
+    const spinning = refreshBtn.classList.contains('spinning');
+    setResult(r[1], spinning ? 'pass' : 'fail',
+      spinning ? '.spinning class added on click' : '.spinning class was NOT added after click');
+    // let spinner settle
+    await delay(500);
+  } else {
+    setResult(r[1], 'skip', 'Skipped — refresh button not found');
+  }
+
+  // 3. Pause button exists
+  const pauseBtn = appDoc.getElementById('social-pause-btn');
+  setResult(r[2], pauseBtn ? 'pass' : 'fail',
+    pauseBtn ? '#social-pause-btn found' : '#social-pause-btn not found in DOM');
+
+  // 4. Pause button toggles icon
+  if (pauseBtn) {
+    const icon = appDoc.getElementById('social-pause-icon');
+    const before = icon ? icon.className : '';
+    pauseBtn.click();
+    await delay(100);
+    const after = icon ? icon.className : '';
+    const toggled = before !== after;
+    setResult(r[3], toggled ? 'pass' : 'fail',
+      toggled ? `Icon changed: "${before}" → "${after}"` : 'Icon class did not change after click');
+    pauseBtn.click(); // restore
+  } else {
+    setResult(r[3], 'skip', 'Skipped — pause button not found');
+  }
+
+  // 5. Reader overlay hidden on load
+  const overlay = appDoc.getElementById('reader-overlay');
+  const hidden = overlay && !overlay.classList.contains('open');
+  setResult(r[4], hidden ? 'pass' : 'fail',
+    hidden ? 'reader-overlay does not have .open on load' : 'reader-overlay unexpectedly has .open on load');
+
+  // 6. Clicking a story opens the reader
+  const firstStory = appDoc.querySelector('.story-item');
+  if (firstStory && overlay) {
+    firstStory.click();
+    await delay(100);
+    const open = overlay.classList.contains('open');
+    setResult(r[5], open ? 'pass' : 'fail',
+      open ? 'reader-overlay gained .open after story click' : '.open class NOT added after story click');
+
+    // 7. Close button dismisses reader
+    const closeBtn = appDoc.querySelector('.reader-close');
+    if (closeBtn) {
+      closeBtn.click();
+      await delay(100);
+      const closed = !overlay.classList.contains('open');
+      setResult(r[6], closed ? 'pass' : 'fail',
+        closed ? 'reader-overlay lost .open after close click' : '.open class still present after close click');
+    } else {
+      setResult(r[6], 'skip', 'Skipped — .reader-close not found');
+    }
+  } else {
+    setResult(r[5], 'skip', 'Skipped — no .story-item found');
+    setResult(r[6], 'skip', 'Skipped — no .story-item found');
+  }
+}
+
+/* ── Section 2: API tests ──────────────────────────────── */
+async function runAPITests() {
+  const r = apiRows;
+
+  // 1 & 2. Feed 200 + valid JSON array
+  let feedOk = false;
+  try {
+    const res = await fetch('/.netlify/functions/feed');
+    feedOk = res.ok;
+    setResult(r[0], res.ok ? 'pass' : 'fail', `HTTP ${res.status}`);
+    if (res.ok) {
+      const data = await res.json();
+      const isArr = Array.isArray(data);
+      setResult(r[1], isArr ? 'pass' : 'fail',
+        isArr ? `Array with ${data.length} item(s)` : `Response is ${typeof data}, not array`);
+
+      // 3. Required fields
+      if (isArr && data.length) {
+        const required = ['id', 'title', 'topic', 'lat', 'lng', 'source'];
+        const missing = required.filter(k => !(k in data[0]));
+        setResult(r[2], missing.length === 0 ? 'pass' : 'fail',
+          missing.length === 0
+            ? `All required fields present on first story`
+            : `Missing fields: ${missing.join(', ')}`);
+      } else {
+        setResult(r[2], isArr ? 'skip' : 'skip', isArr ? 'Array empty — cannot check fields' : 'Skipped — invalid JSON');
+      }
+    } else {
+      setResult(r[1], 'skip', 'Skipped — feed returned non-200');
+      setResult(r[2], 'skip', 'Skipped — feed returned non-200');
+    }
+  } catch (e) {
+    setResult(r[0], 'fail', e.message);
+    setResult(r[1], 'skip', 'Skipped — fetch failed');
+    setResult(r[2], 'skip', 'Skipped — fetch failed');
+  }
+
+  // 4 & 5. Social 200 + valid JSON array
+  try {
+    const res = await fetch('/.netlify/functions/social');
+    setResult(r[3], res.ok ? 'pass' : 'fail', `HTTP ${res.status}`);
+    if (res.ok) {
+      const data = await res.json();
+      const isArr = Array.isArray(data);
+      setResult(r[4], isArr ? 'pass' : 'fail',
+        isArr ? `Array with ${data.length} item(s)` : `Response is ${typeof data}, not array`);
+    } else {
+      setResult(r[4], 'skip', 'Skipped — social returned non-200');
+    }
+  } catch (e) {
+    setResult(r[3], 'fail', e.message);
+    setResult(r[4], 'skip', 'Skipped — fetch failed');
+  }
+
+  // 6. Social search
+  try {
+    const res = await fetch('/.netlify/functions/social?q=technology');
+    setResult(r[5], res.ok ? 'pass' : 'fail', `HTTP ${res.status}`);
+  } catch (e) {
+    setResult(r[5], 'fail', e.message);
+  }
+}
+
+/* ── Section 3: Security tests ─────────────────────────── */
+async function runSecTests(appDoc) {
+  const r = secRows;
+
+  // 1. Feed Content-Type
+  try {
+    const res = await fetch('/.netlify/functions/feed');
+    const ct = res.headers.get('content-type') || '';
+    const ok = ct.includes('application/json');
+    setResult(r[0], ok ? 'pass' : 'fail', `Content-Type: ${ct || '(none)'}`);
+  } catch (e) {
+    setResult(r[0], 'fail', e.message);
+  }
+
+  // 2. Social Content-Type
+  try {
+    const res = await fetch('/.netlify/functions/social');
+    const ct = res.headers.get('content-type') || '';
+    const ok = ct.includes('application/json');
+    setResult(r[1], ok ? 'pass' : 'fail', `Content-Type: ${ct || '(none)'}`);
+  } catch (e) {
+    setResult(r[1], 'fail', e.message);
+  }
+
+  // 3. XSS in story title is escaped
+  {
+    let executed = false;
+    const payload = '<img src=x onerror="window._xssHit=true">';
+
+    // Inject a synthetic story with an XSS payload title into the app iframe
+    const appWin = el('app-frame').contentWindow;
+    if (appWin && appWin.STORIES && appWin.renderStories) {
+      const original = [...appWin.STORIES];
+      appWin.STORIES.unshift({
+        id: 99901, topic: 'geo', title: payload,
+        source: 'TestSource', region: 'Test', time: '1m ago', urgency: 'low',
+        lat: 0, lng: 0, url: '#', summary: '<p>test</p>',
+      });
+      appWin._xssHit = false;
+      appWin.renderStories();
+      await delay(200);
+      executed = !!appWin._xssHit;
+      appWin.STORIES = original;
+      appWin.renderStories();
+
+      const storyList = appDoc.getElementById('stories-list');
+      const raw = storyList ? storyList.innerHTML : '';
+      const containsLiteral = raw.includes('<img src=x');
+      setResult(r[2],
+        (!executed && !containsLiteral) ? 'pass' : 'fail',
+        (!executed && !containsLiteral)
+          ? 'Payload rendered as escaped text, onerror did not fire'
+          : executed
+            ? 'CRITICAL: onerror handler executed — XSS not blocked'
+            : 'Raw img tag found in DOM — payload not escaped');
+    } else {
+      setResult(r[2], 'skip', 'Skipped — app iframe not ready or no STORIES global');
+    }
+  }
+
+  // 4. XSS in social post text is escaped
+  {
+    let executed = false;
+    const payload = '<script>window._xssHit2=true;<\/script>';
+    const appWin = el('app-frame').contentWindow;
+    if (appWin && appWin.SOCIAL_POSTS && appWin.renderSocial) {
+      appWin._xssHit2 = false;
+      appWin.renderSocial([{
+        id: 'test-1', platform: 'static', handle: '@test', initials: 'T',
+        color: '#888', topic: 'geo', text: payload, time: '1m', url: '#', score: 0,
+      }]);
+      await delay(200);
+      executed = !!appWin._xssHit2;
+      appWin.renderSocial(appWin.SOCIAL_POSTS);
+
+      const socialList = appDoc.getElementById('social-list');
+      const raw = socialList ? socialList.innerHTML : '';
+      const containsScript = raw.includes('<script>');
+      setResult(r[3],
+        (!executed && !containsScript) ? 'pass' : 'fail',
+        (!executed && !containsScript)
+          ? 'Script tag payload escaped, did not execute'
+          : executed
+            ? 'CRITICAL: script executed — XSS not blocked'
+            : 'Raw script tag found in DOM — payload not escaped');
+    } else {
+      setResult(r[3], 'skip', 'Skipped — app iframe not ready or no SOCIAL_POSTS global');
+    }
+  }
+
+  // 5. No stack trace in feed error response (send a bad request)
+  try {
+    const res = await fetch('/.netlify/functions/feed?__break=1');
+    const text = await res.text();
+    const hasTrace = /at\s+\w+\s+\(/.test(text) || /Error:.*\n\s+at/.test(text);
+    setResult(r[4], !hasTrace ? 'pass' : 'fail',
+      !hasTrace ? 'No Node.js stack trace detected in response' : 'Stack trace found in response body');
+  } catch (e) {
+    setResult(r[4], 'skip', 'Skipped — fetch failed');
+  }
+}
+
+/* ── Runner ────────────────────────────────────────────── */
+function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+async function runAll() {
+  pass = 0; fail = 0; skip = 0;
+  el('run-btn').disabled = true;
+
+  // Reset all badges
+  document.querySelectorAll('.badge').forEach(b => {
+    b.className = 'badge badge-wait';
+    b.textContent = 'WAIT';
+  });
+  document.querySelectorAll('.test-detail, .test-error').forEach(e => e.remove());
+
+  updateSummary();
+
+  // Wait for iframe to load
+  const frame = el('app-frame');
+  await new Promise(resolve => {
+    if (frame.contentDocument && frame.contentDocument.readyState === 'complete') {
+      resolve();
+    } else {
+      frame.onload = resolve;
+      frame.src = '/';
+    }
+  });
+  await delay(1200); // let app.js DOMContentLoaded fire and render
+
+  const appDoc = frame.contentDocument;
+
+  await runUITests(appDoc);
+  await runAPITests();
+  await runSecTests(appDoc);
+
+  el('run-btn').disabled = false;
+}
+</script>
+</body>
+</html>
