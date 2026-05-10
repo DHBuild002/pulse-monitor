@@ -450,6 +450,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReader(
 async function loadStories(force = false) {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
+  const minVisible = new Promise(r => setTimeout(r, 500));
   try {
     const res = await fetch('/.netlify/functions/feed');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -464,6 +465,7 @@ async function loadStories(force = false) {
   } catch (err) {
     console.warn('Feed fetch failed, using existing data:', err);
   } finally {
+    await minVisible;
     btn.classList.remove('spinning');
     updateTimestamp();
   }
