@@ -204,6 +204,11 @@ const TAG_LABELS = {
   geo: 'Geopolitics', tech: 'Tech & AI', health: 'Public Health', space: 'Science & Space',
 };
 
+function sanitize(s) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  return String(s || '').replace(/[&<>"']/g, c => map[c]);
+}
+
 let map, currentFilter = 'all';
 
 function initMap() {
@@ -237,8 +242,8 @@ function renderMarkers() {
     marker.bindPopup(`
       <div class="map-popup">
         <div class="pop-tag" style="color:${color}">${label}</div>
-        <div class="pop-title">${story.title}</div>
-        <div class="pop-meta">${story.source} &middot; ${story.time}</div>
+        <div class="pop-title">${sanitize(story.title)}</div>
+        <div class="pop-meta">${sanitize(story.source)} &middot; ${sanitize(story.time)}</div>
         <button class="pop-read" onclick="openReader(${story.id})">
           <i class="ph ph-book-open"></i> Read summary
         </button>
@@ -275,7 +280,7 @@ function deriveRegions(stories) {
 function renderRightPanel() {
   document.getElementById('region-list').innerHTML = deriveRegions(STORIES).map(r => `
     <div class="region-item">
-      <div class="region-name">${r.name}</div>
+      <div class="region-name">${sanitize(r.name)}</div>
       <div class="region-count">${r.count} active ${r.count === 1 ? 'story' : 'stories'}</div>
       <div class="region-tags">
         ${r.topics.map(t => `<span class="tag tag-${t}">${TAG_LABELS[t]}</span>`).join('')}
@@ -301,14 +306,14 @@ function renderSocial(posts) {
   const list = posts || SOCIAL_POSTS;
   document.getElementById('social-list').innerHTML = list.map(p => `
     <a class="social-post" href="${p.url || '#'}" target="_blank" rel="noopener">
-      <div class="avatar" style="background:${p.color}20;color:${p.color}">${p.initials}</div>
+      <div class="avatar" style="background:${p.color}20;color:${p.color}">${sanitize(p.initials)}</div>
       <div class="post-body">
         <div class="post-handle-row">
           <span class="platform-badge platform-${p.platform || 'static'}">${platformLabel(p.platform)}</span>
-          <span class="post-handle">${p.handle} &middot; ${p.time}</span>
+          <span class="post-handle">${sanitize(p.handle)} &middot; ${sanitize(p.time)}</span>
         </div>
-        <div class="post-tag tag-${p.topic}">${TAG_LABELS[p.topic] || p.topic}</div>
-        <div class="post-text">${p.text}</div>
+        <div class="post-tag tag-${p.topic}">${TAG_LABELS[p.topic] || sanitize(p.topic)}</div>
+        <div class="post-text">${sanitize(p.text)}</div>
       </div>
     </a>`).join('');
 }
@@ -382,10 +387,10 @@ function renderStories() {
       <div class="story-body">
         <div class="story-tag-row">
           <span class="tag tag-${s.topic}">${TAG_LABELS[s.topic]}</span>
-          <span style="font-size:10px;color:var(--text-3)">${s.region}</span>
+          <span style="font-size:10px;color:var(--text-3)">${sanitize(s.region)}</span>
         </div>
-        <div class="story-title">${s.title}</div>
-        <div class="story-meta-row">${s.source} &middot; ${s.time}</div>
+        <div class="story-title">${sanitize(s.title)}</div>
+        <div class="story-meta-row">${sanitize(s.source)} &middot; ${sanitize(s.time)}</div>
       </div>
       <div class="urgency-dot" style="background:${urgencyColor(s.urgency)}"></div>
     </div>`).join('');
